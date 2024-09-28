@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Game } from './model/game.class';
 import { User } from './model/user.class';
+import { environment } from '../../../../src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,9 +10,10 @@ import { User } from './model/user.class';
 export class RestService {
   http = inject(HttpClient);
 
-  newGame(data: Game) {
+  apiUrl = environment.apiUrl;
 
-    this.http.put(`/api/game/state/${data.id}`, data, {
+  newGame(data: Game) {
+    this.http.put(`${this.apiUrl}/api/game/state/${data.id}`, data, {
     });
   }
 
@@ -19,7 +21,7 @@ export class RestService {
     const headers = new HttpHeaders({
       'x-game-id': game.id,
     });
-    this.http.patch(`/api/game/state`, game, { headers });
+    this.http.patch(`${this.apiUrl}/api/game/state`, game, { headers });
   }
 
   updateUser(user: User, userId: string, gameId: string) {
@@ -27,11 +29,11 @@ export class RestService {
       'x-user-id': userId,
       'x-game-id': gameId,
     });
-    this.http.patch(`/api/user/state`, user, { headers });
+    this.http.patch(`${this.apiUrl}/api/user/state`, user, { headers });
   }
 
   newUser(user: User, gameId: string) {
-    this.http.put(`/api/user/state`, {
+    this.http.put(`${this.apiUrl}/api/user/state`, {
       id: user.id,
       gameId,
       data: user,
