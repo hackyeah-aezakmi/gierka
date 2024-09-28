@@ -1,0 +1,14 @@
+FROM golang:1.23.1-bookworm
+
+WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
+COPY . ./
+
+RUN go build -o /gierka
+
+EXPOSE 8080
+
+CMD ["/gierka"]
