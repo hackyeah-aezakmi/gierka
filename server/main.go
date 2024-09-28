@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/hackyeah-aezakmi/gierka/database"
 	"github.com/hackyeah-aezakmi/gierka/transport/http"
 	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 
@@ -16,6 +17,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	db, err := database.InitDB("gierka.db")
+	if err != nil {
+		log.Printf("Error initializing database: %s", err)
+	}
+	defer db.Close()
+	log.Println("Database OK")
 
 	openaiApiKey := os.Getenv("OPENAI_API_KEY")
 	if openaiApiKey == "" {
