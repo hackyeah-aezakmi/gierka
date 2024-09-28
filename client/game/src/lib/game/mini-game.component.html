@@ -1,6 +1,6 @@
 @switch (miniGame) {
   @case (MiniGame.QUIZ) {
-    <lib-game-quiz [config]="config" (end)="handleEnd()" />
+    <lib-game-quiz [config]="config" (end)="handleEnd($event)" />
   }
   @case (MiniGame.COLORS) {
     <lib-game-colors [config]="config" />

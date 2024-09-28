@@ -1,7 +1,7 @@
 @if (stateService.game(); as game) {
   @if (game.started) {
     @if (game.miniGame !== undefined) {
-      <lib-mini-game [miniGame]="game.miniGame" [config]="game.config" />
+      <lib-mini-game [miniGame]="game.miniGame" [config]="game.config" (end)="handleMiniGameEnd($event)" />
     } @else {
       <lib-mini-game-selector />
     }

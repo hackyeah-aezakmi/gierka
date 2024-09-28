@@ -34,4 +34,8 @@ export class GameComponent implements OnInit {
   private connectToWS() {
     // update state
   }
+
+  handleMiniGameEnd($event: number) {
+    this.stateService.user.points = $event;
+  }
 }

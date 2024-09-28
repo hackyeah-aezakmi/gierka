@@ -5,6 +5,7 @@ export class User {
   id!: string;
   nick!: string;
   selectedMiniGame?: MiniGame;
+  points?: number;
 
   static create(id: string, nick: string, isHost = false) {
     const user = new User();

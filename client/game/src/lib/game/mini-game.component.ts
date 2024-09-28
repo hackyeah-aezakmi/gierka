@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MiniGame } from '../../../../state/src/lib/state/model/mini-game.enum';
 import { GameQuizComponent } from './mini-games/game-quiz.component';
@@ -15,8 +15,9 @@ export class MiniGameComponent {
 
   @Input({ required: true }) miniGame!: MiniGame;
   @Input() config!: any;
+  @Output() end = new EventEmitter<number>();
 
-  handleEnd() {
-
+  handleEnd(time: number) {
+    this.end.emit(time);
   }
 }
