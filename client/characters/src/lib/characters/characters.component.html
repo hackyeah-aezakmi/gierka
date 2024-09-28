@@ -1,1 +1,8 @@
-<img [ngSrc]="'/lem' + ((index % 5) + 1) + '.png'" width="300" height="300" alt=""/>
+<div class="character">
+  @if (nick) {
+    <div class="character__label absolute flex justify-center fredoka-700">
+      <span>{{ nick | uppercase }}</span>
+    </div>
+  }
+  <img [ngSrc]="'/lem' + ((index % 5) + 1) + '.png'" width="300" height="300" alt=""/>
+</div>

@@ -3,7 +3,7 @@
   <div class="absolute bottom-0 left-0 right-0">
     <div class="relative w-full flex justify-evenly">
       @for (user of stateService.users() | keyvalue; track user.key) {
-        <lib-character [index]="$index" />
+        <lib-character [index]="$index" [nick]="user.value.nick" />
       }
     </div>
   </div>

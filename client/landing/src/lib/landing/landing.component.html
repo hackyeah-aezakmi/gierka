@@ -1,6 +1,9 @@
 <div class="w-full h-screen flex justify-center items-center relative">
-  @if (stateService.users()[stateService.uid]) {
-    <div (click)="stateService.addUser()">
+  @if (stateService.game()) {
+    <button class="button-background absolute -translate-y-36" (click)="stateService.start()">
+      <span class="button-text fredoka-700">start!</span>
+    </button>
+    <div (click)="stateService.addUser(stateService.createFakeUser())">
       <qrcode class="qr-code" [qrdata]="'dupa'" />
     </div>
   } @else {
@@ -9,7 +12,7 @@
   <div class="absolute bottom-0 left-0 right-0">
     <div class="relative w-full flex justify-evenly">
       @for (user of stateService.users() | keyvalue; track user.key) {
-        <lib-character [index]="$index" />
+        <lib-character [index]="$index" [nick]="user.value.nick" />
       }
     </div>
   </div>

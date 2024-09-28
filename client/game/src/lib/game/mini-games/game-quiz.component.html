@@ -1,0 +1,6 @@
+<h3 class="text-center p-4 text-2xl">{{ config.question }}</h3>
+@for (i of questionsIndexArray; track i) {
+  <button [disabled]="buttonsDisabled()" (mousedown)="handleAnswerClick(i)"
+          (touchstart)="handleAnswerClick(i)">{{ config.answers[i] }}
+  </button>
+}

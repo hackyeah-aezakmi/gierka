@@ -1,20 +1,17 @@
+import { MiniGame } from './mini-game.enum';
+
 export class User {
   host: boolean = false;
   id!: string;
   nick!: string;
+  selectedMiniGame?: MiniGame;
 
-  static createHost(id: string) {
+  static create(id: string, nick: string, isHost = false) {
     const user = new User();
 
     user.id = id;
-    user.host = true;
-    return user;
-  }
-
-  static create(id: string) {
-    const user = new User();
-
-    user.id = id;
+    user.nick = nick;
+    user.host = isHost;
     return user;
   }
 }

@@ -1,0 +1,11 @@
+@if (stateService.game(); as game) {
+  @if (game.started) {
+    @if (game.miniGame !== undefined) {
+      <lib-mini-game [miniGame]="game.miniGame" [config]="game.config" />
+    } @else {
+      <lib-mini-game-selector />
+    }
+  } @else {
+    waiting for start
+  }
+}

@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {QRCodeModule} from "angularx-qrcode";
-import { StateService } from '@gierka/state';
+import { Game, StateService, User } from '@gierka/state';
 import { ButtonDirective } from 'primeng/button';
 import { Ripple } from 'primeng/ripple';
 import { CharactersComponent } from '@gierka/characters';
@@ -15,10 +15,10 @@ import { CharactersComponent } from '@gierka/characters';
       :host {
           background-image: url("/background.png");
           background-color: #adc68e;
+          background-size: 600px 600px;
           display: block;
           background-repeat: no-repeat;
           background-position: center center;
-          background-size: contain;
       }
 
       .qr-code {
@@ -29,8 +29,10 @@ import { CharactersComponent } from '@gierka/characters';
       }
   `,
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
   stateService = inject(StateService);
 
-  url: string = 'http://localhost:8080';
+  ngOnInit() {
+    this.stateService.loadGame();
+  }
 }
