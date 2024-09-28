@@ -1,0 +1,11 @@
+<div class="flex flex-col items-center gap-4">
+  <label class="flex flex-col items-center gap-4 relative">
+    <span class="heading-text fredoka-700">NICK</span>
+    <input (keydown.enter)="join()" class="text-xl p-4 uppercase fredoka-700 text-center" type="text" pInputText
+           [formControl]="nameFormControl" placeholder="" />
+    <lib-error class="absolute bottom-[-3px]" [control]="nameFormControl" />
+  </label>
+  <button class="button-background" (click)="join()">
+    <span class="button-text fredoka-700">JOIN!</span>
+  </button>
+</div>

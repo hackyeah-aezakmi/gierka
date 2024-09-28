@@ -1,0 +1,10 @@
+<div class="w-full h-screen flex justify-center items-center relative">
+  <span class="heading-text fredoka-700">WAIT<br>FOR<br>START</span>
+  <div class="absolute bottom-0 left-0 right-0">
+    <div class="relative w-full flex justify-evenly">
+      @for (user of stateService.users() | keyvalue; track user.key) {
+        <lib-character [index]="$index" />
+      }
+    </div>
+  </div>
+</div>

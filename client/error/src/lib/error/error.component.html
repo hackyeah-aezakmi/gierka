@@ -1,0 +1,15 @@
+@if (control.touched && control.errors) {
+  @for (error of control.errors | keyvalue; track error.key) {
+    @switch (error.key) {
+      @case ('required') {
+        <p class="text-red-600 text-sm">This field is required.</p>
+      }
+      @case ('maxlength') {
+        <p class="text-red-600 text-sm">Please enter no more than {{ error.value.requiredLength }} characters.</p>
+      }
+      @case ('minlength') {
+        <p class="text-red-600 text-sm">Please enter more than {{ error.value.requiredLength }} characters.</p>
+      }
+    }
+  }
+}

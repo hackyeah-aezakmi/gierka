@@ -1,5 +1,84 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.css";
 
 /* You can add global styles to this file, and also import other style files */
+.fredoka-300 {
+  font-family: "Fredoka", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+.fredoka-700 {
+  font-family: "Fredoka", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+
+.heading-text {
+  font-size: 52px;
+  color: white;
+  font-weight: 900;
+  line-height: 40px;
+
+  background: linear-gradient(
+                  to right,
+                  #7ccd53 20%,
+                  #00fa64 30%,
+                  #53cd01 70%,
+                  #dad84a 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+}
+
+.button-text {
+  font-size: 42px;
+  color: white;
+  font-weight: 900;
+  line-height: 40px;
+
+  background: linear-gradient(
+                  to right,
+                  #cd5353 20%,
+                  #fa007d 30%,
+                  #cd014f 70%,
+                  #cc4ada 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 5s ease-in-out infinite alternate;
+}
+
+.button-background {
+  border-radius: 10px;
+  padding: 10px;
+  background: linear-gradient(
+                  to bottom,
+                  #C6EDCE,
+                  #E3ECA4
+  );
+  outline: 5px solid #638e6c;
+}
+
+@keyframes textShine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}

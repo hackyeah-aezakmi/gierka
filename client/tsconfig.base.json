@@ -15,7 +15,12 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@gierka/landing": ["landing/src/index.ts"]
+      "@gierka/characters": ["characters/src/index.ts"],
+      "@gierka/error": ["error/src/index.ts"],
+      "@gierka/join": ["join/src/index.ts"],
+      "@gierka/landing": ["landing/src/index.ts"],
+      "@gierka/room": ["room/src/index.ts"],
+      "@gierka/state": ["state/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

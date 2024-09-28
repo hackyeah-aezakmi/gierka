@@ -1,1 +1,16 @@
-<qrcode [qrdata]="url"/>
+<div class="w-full h-screen flex justify-center items-center relative">
+  @if (stateService.users()[stateService.uid]) {
+    <div (click)="stateService.addUser()">
+      <qrcode class="qr-code" [qrdata]="'dupa'" />
+    </div>
+  } @else {
+    <button class="text-left heading-text fredoka-700" (click)="stateService.createNewGame()">NEW<br>GAME</button>
+  }
+  <div class="absolute bottom-0 left-0 right-0">
+    <div class="relative w-full flex justify-evenly">
+      @for (user of stateService.users() | keyvalue; track user.key) {
+        <lib-character [index]="$index" />
+      }
+    </div>
+  </div>
+</div>
