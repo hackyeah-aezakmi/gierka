@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/hackyeah-aezakmi/gierka/database"
+	"github.com/hackyeah-aezakmi/gierka/store"
 	"github.com/hackyeah-aezakmi/gierka/transport/middleware"
 	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 	"github.com/rs/cors"
@@ -14,20 +15,24 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 )
 
 type Handler struct {
-	Router   *mux.Router
-	Server   *http.Server
-	Database *database.Database
-	WsPool   *socket.Pool
+	Router          *mux.Router
+	ProtectedRouter *mux.Router
+	Server          *http.Server
+	Database        *database.Database
+	Store           *store.RedisStore
+	WsPool          *socket.Pool
 }
 
-func NewHandler(pool *socket.Pool, db *database.Database) *Handler {
+func NewHandler(pool *socket.Pool, db *database.Database, s *store.RedisStore) *Handler {
 	h := &Handler{
 		WsPool:   pool,
 		Database: db,
+		Store:    s,
 	}
 	h.Router = mux.NewRouter()
 
@@ -47,6 +52,8 @@ func NewHandler(pool *socket.Pool, db *database.Database) *Handler {
 	h.Router.Use(middleware.JSONMiddleware)
 	h.Router.Use(c.Handler)
 
+	h.Router.Use(middleware.UserMiddleware)
+
 	h.mapRoutes()
 
 	h.Server = &http.Server{
@@ -60,7 +67,8 @@ func NewHandler(pool *socket.Pool, db *database.Database) *Handler {
 func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/game/state", h.CreateGame).Methods("PUT")
 
-	h.Router.HandleFunc("/api/user/state", h.UpdateState).Methods("PATCH")
+	h.Router.HandleFunc("/api/user/state", h.CreateUser).Methods("PUT")
+	h.Router.HandleFunc("/api/user/state", h.UpdateUser).Methods("PATCH")
 	h.Router.HandleFunc("/api/quiz/question", h.GetQuestion).Methods("GET")
 	h.Router.HandleFunc("/api/quiz/question", h.GetQuestion).Methods("PUT")
 
@@ -100,7 +108,10 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+	userID := r.Context().Value("user").(string)
+
 	client := &socket.Client{
+		ID:     userID,
 		Conn:   conn,
 		Pool:   pool,
 		GameID: gameId,
@@ -108,7 +119,7 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 
 	pool.Register <- client
 
-	game, err := h.Database.GetGame(gameId)
+	gameData, err := h.Store.GetGame(gameId)
 	if err != nil {
 		log.Printf("serveWebsocket: can't get game: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -116,7 +127,7 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 
 	helloMsg := socket.Message{
 		Type: "gameDetails",
-		Data: game.Data,
+		Data: gameData,
 	}
 
 	helloMsgJson, err := json.Marshal(helloMsg)
@@ -126,6 +137,41 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 	}
 
 	client.Conn.WriteMessage(websocket.TextMessage, helloMsgJson)
+
+	lobbyUsers := make(map[string]string)
+	gameUsers, err := h.Store.GetGameUsers(gameId)
+	for _, lobbyUser := range gameUsers {
+		userArr := strings.Split(lobbyUser, ":")
+		user := userArr[len(userArr)-1]
+
+		userDetails, err := h.Store.GetUser(user, gameId)
+		if err != nil {
+			log.Printf("serveWebsocket: can't get user details: %s", err)
+			continue
+		}
+
+		lobbyUsers[user] = userDetails
+	}
+	if err != nil {
+		log.Printf("serveWebsocket: can't get lobby users: %s", err)
+	}
+
+	lobbyUsersJson, err := json.Marshal(lobbyUsers)
+	if err != nil {
+		log.Printf("serveWebsocket: can't marshal json: %s", err)
+	}
+
+	lobbyMsg := socket.Message{
+		Type: "lobbyUpdate",
+		Data: string(lobbyUsersJson),
+	}
+
+	lobbyMsgJson, err := json.Marshal(lobbyMsg)
+	if err != nil {
+		log.Printf("serveWebsocket: can't marshal json: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	client.Pool.Broadcast <- string(lobbyMsgJson)
 
 	client.HandleConn()
 }

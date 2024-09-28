@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hackyeah-aezakmi/gierka/store"
 	"log"
 	"os"
 
@@ -31,9 +32,10 @@ func main() {
 	}
 	_ = openai.NewClient(openaiApiKey) // OpenAI Client
 
+	s := store.NewRedisStore()
 	pool := socket.NewPool()
 	go pool.Start()
-	h := http.NewHandler(pool, db)
+	h := http.NewHandler(pool, db, s)
 	if err := h.Serve(); err != nil {
 		log.Fatalf("http.Serve: %s", err)
 	}

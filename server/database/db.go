@@ -22,6 +22,11 @@ func InitDB(path string) (*Database, error) {
 			id TEXT PRIMARY KEY,
 			data TEXT NOT NULL
 		);
+
+		CREATE TABLE IF NOT EXISTS users (
+			id TEXT PRIMARY KEY,
+			data TEXT NOT NULL
+		);
 	`
 	_, err = db.Exec(createTablesQuery)
 	if err != nil {

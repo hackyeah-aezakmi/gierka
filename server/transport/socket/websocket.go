@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -42,8 +41,6 @@ func (c *Client) HandleConn() {
 	}()
 
 	for {
-		log.Println("sending message....")
-		c.Pool.Broadcast <- "hello world"
-		time.Sleep(time.Second * 5)
+		c.Conn.ReadMessage()
 	}
 }
