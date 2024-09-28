@@ -27,17 +27,7 @@ func (h *Handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	game, err := h.Database.CreateGame(req.ID, req.Data)
-	if err != nil {
-		log.Printf("CreateGame: create game failed: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.Store.SetGame(req.ID, req.Data)
 
-	resp, err := json.Marshal(game)
-	if err != nil {
-		log.Printf("CreateGame: marshal response failed: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	w.Write(resp)
+	w.WriteHeader(http.StatusCreated)
 }
