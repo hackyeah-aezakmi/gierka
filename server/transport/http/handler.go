@@ -2,8 +2,11 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+	"github.com/hackyeah-aezakmi/gierka/database"
 	"github.com/hackyeah-aezakmi/gierka/transport/middleware"
 	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 	"github.com/rs/cors"
@@ -15,14 +18,16 @@ import (
 )
 
 type Handler struct {
-	Router *mux.Router
-	Server *http.Server
-	WsPool *socket.Pool
+	Router   *mux.Router
+	Server   *http.Server
+	Database *database.Database
+	WsPool   *socket.Pool
 }
 
-func NewHandler(pool *socket.Pool) *Handler {
+func NewHandler(pool *socket.Pool, db *database.Database) *Handler {
 	h := &Handler{
-		WsPool: pool,
+		WsPool:   pool,
+		Database: db,
 	}
 	h.Router = mux.NewRouter()
 
@@ -53,8 +58,7 @@ func NewHandler(pool *socket.Pool) *Handler {
 }
 
 func (h *Handler) mapRoutes() {
-	h.Router.HandleFunc("/api/game/state", h.UpdateState).Methods("PUT")
-	h.Router.HandleFunc("/api/game/state/[id]", h.UpdateState).Methods("GET")
+	h.Router.HandleFunc("/api/game/state", h.CreateGame).Methods("PUT")
 
 	h.Router.HandleFunc("/api/user/state", h.UpdateState).Methods("PATCH")
 	h.Router.HandleFunc("/api/quiz/question", h.GetQuestion).Methods("GET")
@@ -85,6 +89,11 @@ func (h *Handler) Serve() error {
 }
 
 func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *http.Request) {
+	gameId := r.URL.Query().Get("id")
+	if gameId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
 	conn, err := socket.Upgrade(w, r)
 	if err != nil {
 		log.Printf("serveWebsocket: can't upgrade: %s", err)
@@ -92,10 +101,31 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 	}
 
 	client := &socket.Client{
-		Conn: conn,
-		Pool: pool,
+		Conn:   conn,
+		Pool:   pool,
+		GameID: gameId,
 	}
 
 	pool.Register <- client
+
+	game, err := h.Database.GetGame(gameId)
+	if err != nil {
+		log.Printf("serveWebsocket: can't get game: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	helloMsg := socket.Message{
+		Type: "gameDetails",
+		Data: game.Data,
+	}
+
+	helloMsgJson, err := json.Marshal(helloMsg)
+	if err != nil {
+		log.Printf("serveWebsocket: can't marshal json: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	client.Conn.WriteMessage(websocket.TextMessage, helloMsgJson)
+
 	client.HandleConn()
 }

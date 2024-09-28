@@ -6,7 +6,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB(path string) (*sql.DB, error) {
+type Database struct {
+	DB    *sql.DB
+	Close func() error
+}
+
+func InitDB(path string) (*Database, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
@@ -23,5 +28,8 @@ func InitDB(path string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	return db, nil
+	return &Database{
+		DB:    db,
+		Close: db.Close,
+	}, nil
 }

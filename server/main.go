@@ -33,7 +33,7 @@ func main() {
 
 	pool := socket.NewPool()
 	go pool.Start()
-	h := http.NewHandler(pool)
+	h := http.NewHandler(pool, db)
 	if err := h.Serve(); err != nil {
 		log.Fatalf("http.Serve: %s", err)
 	}

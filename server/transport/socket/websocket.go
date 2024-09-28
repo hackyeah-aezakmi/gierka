@@ -14,9 +14,15 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	ID   string
-	Conn *websocket.Conn
-	Pool *Pool
+	ID     string
+	GameID string
+	Conn   *websocket.Conn
+	Pool   *Pool
+}
+
+type Message struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
 }
 
 func Upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
