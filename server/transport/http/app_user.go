@@ -6,5 +6,5 @@ import (
 
 // UpdateState update state of the current user
 func (h *Handler) UpdateState(w http.ResponseWriter, r *http.Request) {
-
+	w.Write([]byte("UpdateState"))
 }

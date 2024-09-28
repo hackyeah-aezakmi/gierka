@@ -2,8 +2,10 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hackyeah-aezakmi/gierka/transport/middleware"
+	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 	"github.com/rs/cors"
 	"log"
 	"net/http"
@@ -15,12 +17,14 @@ import (
 type Handler struct {
 	Router *mux.Router
 	Server *http.Server
+	WsPool *socket.Pool
 }
 
-func NewTransport() *Handler {
-	h := &Handler{}
+func NewHandler(pool *socket.Pool) *Handler {
+	h := &Handler{
+		WsPool: pool,
+	}
 	h.Router = mux.NewRouter()
-	h.Router.PathPrefix("/api")
 
 	// preflight request
 	h.Router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,9 +32,10 @@ func NewTransport() *Handler {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:3000/"},
+		AllowedOrigins: []string{"http://localhost:4200"},
 		AllowedHeaders: []string{"accept", "content-type", "x-requested-with", "authorization"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+
 		// Enable Debugging for testing, consider disabling in production
 		Debug: true,
 	})
@@ -39,19 +44,31 @@ func NewTransport() *Handler {
 
 	h.mapRoutes()
 
+	h.Server = &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%d", 8080),
+		Handler: h.Router,
+	}
+
 	return h
 }
 
 func (h *Handler) mapRoutes() {
-	h.Router.HandleFunc("/user/state", h.UpdateState).Methods("PATCH")
-	h.Router.HandleFunc("/quiz/question", h.GetQuestion).Methods("GET")
-	h.Router.HandleFunc("/quiz/question", h.GetQuestion).Methods("PUT")
+	h.Router.HandleFunc("/api/game/state", h.UpdateState).Methods("PUT")
+	h.Router.HandleFunc("/api/game/state/[id]", h.UpdateState).Methods("GET")
+
+	h.Router.HandleFunc("/api/user/state", h.UpdateState).Methods("PATCH")
+	h.Router.HandleFunc("/api/quiz/question", h.GetQuestion).Methods("GET")
+	h.Router.HandleFunc("/api/quiz/question", h.GetQuestion).Methods("PUT")
+
+	h.Router.HandleFunc("/api/ws", func(w http.ResponseWriter, r *http.Request) {
+		h.serveWebsocket(h.WsPool, w, r)
+	}).Methods("GET")
 }
 
 func (h *Handler) Serve() error {
 	go func() {
 		if err := h.Server.ListenAndServe(); err != nil {
-			log.Println(err.Error())
+			log.Printf("http Serve: %s", err)
 		}
 	}()
 
@@ -65,4 +82,20 @@ func (h *Handler) Serve() error {
 
 	log.Println("shut down gracefully")
 	return nil
+}
+
+func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *http.Request) {
+	conn, err := socket.Upgrade(w, r)
+	if err != nil {
+		log.Printf("serveWebsocket: can't upgrade: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	client := &socket.Client{
+		Conn: conn,
+		Pool: pool,
+	}
+
+	pool.Register <- client
+	client.HandleConn()
 }
