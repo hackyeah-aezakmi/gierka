@@ -55,8 +55,8 @@ func (h *Handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 	h.Store.SetGame(req.ID, req.Data)
 
 	newGameMsg := socket.Message{
-		Type: "newGameStart",
-		Data: "",
+		Type: "gameUpdated",
+		Data: req.Data,
 	}
 
 	newGameMsgJson, err := json.Marshal(newGameMsg)
