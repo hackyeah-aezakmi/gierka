@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/hackyeah-aezakmi/gierka/store"
 	"log"
 	"os"
+
+	"github.com/hackyeah-aezakmi/gierka/store"
 
 	"github.com/hackyeah-aezakmi/gierka/database"
 	"github.com/hackyeah-aezakmi/gierka/transport/http"
@@ -14,10 +15,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load()
 
 	db, err := database.InitDB("gierka.db")
 	if err != nil {
