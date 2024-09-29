@@ -5,7 +5,7 @@
            [formControl]="nameFormControl" placeholder="" />
     <lib-error class="absolute bottom-[-3px]" [control]="nameFormControl" />
   </label>
-  <button class="button-background" (click)="join()">
+  <button class="button-background" [disabled]="joinDisabled()" (click)="join()">
     <span class="button-text fredoka-700">JOIN!</span>
   </button>
 </div>

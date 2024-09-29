@@ -13,7 +13,7 @@ export class RestService {
   apiUrl = environment.apiUrl;
 
   newGame(data: Game) {
-    this.http.put(`${this.apiUrl}/api/game/state/${data.id}`, data, {
+    return this.http.put(`${this.apiUrl}/api/game/state`, data, {
     });
   }
 
@@ -33,10 +33,10 @@ export class RestService {
   }
 
   newUser(user: User, gameId: string) {
-    this.http.put(`${this.apiUrl}/api/user/state`, {
+    return this.http.put(`${this.apiUrl}/api/user/state`, {
       id: user.id,
       gameId,
-      data: user,
+      data: JSON.stringify(user),
     });
   }
 }

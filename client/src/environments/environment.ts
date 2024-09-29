@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: process.env['API_URL']
+  apiUrl: 'http://server:8080'
 };

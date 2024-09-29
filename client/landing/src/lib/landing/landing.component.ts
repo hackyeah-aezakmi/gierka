@@ -33,6 +33,6 @@ export class LandingComponent implements OnInit {
   stateService = inject(StateService);
 
   ngOnInit() {
-    this.stateService.loadGame();
+    // this.stateService.loadGame();
   }
 }

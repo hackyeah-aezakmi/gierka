@@ -5,6 +5,7 @@ import { User } from './model/user.class';
 import { RestService } from './rest.service';
 import { Router } from '@angular/router';
 import { MiniGame } from './model/mini-game.enum';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +20,9 @@ export class StateService {
   users = signal<Record<string, User>>({});
 
   saveEffect = effect(() => {
-    console.log('save game');
-    this.saveGame(this.game());
+    if (this.game()) {
+      this.saveGame(this.game());
+    }
 
     if (this.game()?.started) {
       this.router.navigate([`/game/${this.game()?.id}`]);
@@ -54,15 +56,15 @@ export class StateService {
   }
 
   createNewGame() {
-    this.game.set(Game.new(uuid()));
+    const game = Game.new(uuid());
+    this.game.set(game);
 
-    this.saveGame(this.game());
     this.router.navigate([`/join/${this.game()?.id}`]);
   }
 
   private saveGame(game: Game | null = this.game()) {
     if (game) {
-      this.restService.newGame(game);
+      firstValueFrom(this.restService.newGame(game));
 
       localStorage.setItem('data-game', JSON.stringify(game));
     }
@@ -98,13 +100,13 @@ export class StateService {
     }
   }
 
-  addUser(user: User) {
+  async addUser(user: User) {
     this.users.update((users: Record<string, User>) => ({
       ...users,
       [user.id]: user
     }));
 
-    this.restService.newUser(user, this.game()!.id);
+    await firstValueFrom(this.restService.newUser(user, this.game()!.id));
 
     localStorage.setItem('data-users', JSON.stringify(this.users()));
 
@@ -124,10 +126,9 @@ export class StateService {
   }
 
   start() {
-    this.game.update((game: Game | null) => ({
-      ...game!,
-      started: true
-    }));
+    this.updateGame({
+      started: true,
+    })
   }
 
   checkGameState() {
@@ -164,7 +165,7 @@ export class StateService {
     }, 0);
 
     this.updateGame({
-      loading: true,
+      loading: true
     });
 
     const config = await this.getMiniGameConfig(miniGame);
@@ -172,7 +173,7 @@ export class StateService {
     this.updateGame({
       miniGame: miniGame,
       config: config,
-      loading: false,
+      loading: false
     });
   }
 
@@ -180,34 +181,52 @@ export class StateService {
     switch (miniGame) {
       case MiniGame.QUIZ:
         return Promise.resolve({
-          question: 'Który król panujący w czasie Wielkiej Rewolucji Francuskiej został zgilotynowany na Placu Rewolucji w Paryżu?',
+          question: 'que',
           answers: [
-            'Ludwik XVI',
-            'Ludwik XIV',
-            'Napoleon Bonaparte',
-            'Karol X'
+            'a',
+            'b',
+            'c',
+            'd'
           ],
-          correctIndex: 0,
+          correctIndex: 0
         });
       case MiniGame.COLORS:
         return Promise.resolve({});
     }
   }
 
-  loadGame(id?: any): boolean {
-    try {
-      const game = JSON.parse(localStorage.getItem('data-game')!);
-      const users = JSON.parse(localStorage.getItem('data-users')!);
-
-      if (!game || !users) {
-        return false;
-      }
-
-      this.users.set(users);
+  loadGame(id: string): boolean {
+    if (!this.game()) {
+      const game = Game.new(id);
       this.game.set(game);
+    }
+    try {
+      const socket = new WebSocket(`ws://localhost:8080/api/ws?id=${id}`);
+
+      socket.addEventListener('open', () => {
+      });
+
+      socket.onmessage = (event) => {
+        console.log(event.data);
+      };
+
+      this.game.set(Game.new(id));
 
       return true;
-    } catch {
+
+      // const game = JSON.parse(localStorage.getItem('data-game')!);
+      // const users = JSON.parse(localStorage.getItem('data-users')!);
+      //
+      // if (!game || !users) {
+      //   return false;
+      // }
+      //
+      // this.users.set(users);
+      // this.game.set(game);
+      //
+      // return true;
+    } catch (e) {
+      console.error(e);
       return false;
     }
   }

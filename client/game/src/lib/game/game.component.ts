@@ -23,9 +23,7 @@ export class GameComponent implements OnInit {
     this.route.params.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe((params) => {
-      if (params['id'] && this.stateService.loadGame(params['id'])) {
-        this.connectToWS();
-      } else {
+      if (!(params['id'] && this.stateService.loadGame(params['id']))) {
         this.router.navigate(['/']);
       }
     });
