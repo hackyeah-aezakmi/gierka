@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 	"io"
 	"log"
 	"net/http"
@@ -28,6 +29,42 @@ func (h *Handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Store.SetGame(req.ID, req.Data)
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+type UpdateGameRequest struct {
+	ID   string `json:"id"`
+	Data string `json:"data"`
+}
+
+func (h *Handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("UpdateGame: read body failed: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	var req UpdateGameRequest
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		log.Printf("UpdateGame: unmarshal body failed: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	h.Store.SetGame(req.ID, req.Data)
+
+	newGameMsg := socket.Message{
+		Type: "newGameStart",
+		Data: "",
+	}
+
+	newGameMsgJson, err := json.Marshal(newGameMsg)
+	if err != nil {
+		log.Printf("UpdateGame: marshal body failed: %s", err)
+	}
+
+	h.WsPool.Broadcast <- string(newGameMsgJson)
 
 	w.WriteHeader(http.StatusCreated)
 }

@@ -66,6 +66,7 @@ func NewHandler(pool *socket.Pool, db *database.Database, s *store.RedisStore) *
 
 func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/game/state", h.CreateGame).Methods("PUT")
+	h.Router.HandleFunc("/api/game/state", h.UpdateGame).Methods("PATCH")
 
 	h.Router.HandleFunc("/api/user/state", h.CreateUser).Methods("PUT")
 	h.Router.HandleFunc("/api/user/state", h.UpdateUser).Methods("PATCH")
@@ -108,10 +109,8 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	userID := r.Context().Value("user").(string)
-
 	client := &socket.Client{
-		ID:     userID,
+		ID:     "",
 		Conn:   conn,
 		Pool:   pool,
 		GameID: gameId,
