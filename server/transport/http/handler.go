@@ -137,23 +137,7 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 
 	client.Conn.WriteMessage(websocket.TextMessage, helloMsgJson)
 
-	lobbyUsers := make(map[string]string)
-	gameUsers, err := h.Store.GetGameUsers(gameId)
-	for _, lobbyUser := range gameUsers {
-		userArr := strings.Split(lobbyUser, ":")
-		user := userArr[len(userArr)-1]
-
-		userDetails, err := h.Store.GetUser(user, gameId)
-		if err != nil {
-			log.Printf("serveWebsocket: can't get user details: %s", err)
-			continue
-		}
-
-		lobbyUsers[user] = userDetails
-	}
-	if err != nil {
-		log.Printf("serveWebsocket: can't get lobby users: %s", err)
-	}
+	lobbyUsers := h.getLobbyUsers(gameId)
 
 	lobbyUsersJson, err := json.Marshal(lobbyUsers)
 	if err != nil {
@@ -173,4 +157,26 @@ func (h *Handler) serveWebsocket(pool *socket.Pool, w http.ResponseWriter, r *ht
 	client.Pool.Broadcast <- string(lobbyMsgJson)
 
 	client.HandleConn()
+}
+
+func (h *Handler) getLobbyUsers(gameId string) map[string]string {
+	lobbyUsers := make(map[string]string)
+	gameUsers, err := h.Store.GetGameUsers(gameId)
+	for _, lobbyUser := range gameUsers {
+		userArr := strings.Split(lobbyUser, ":")
+		user := userArr[len(userArr)-1]
+
+		userDetails, err := h.Store.GetUser(user, gameId)
+		if err != nil {
+			log.Printf("serveWebsocket: can't get user details: %s", err)
+			continue
+		}
+
+		lobbyUsers[user] = userDetails
+	}
+	if err != nil {
+		log.Printf("serveWebsocket: can't get lobby users: %s", err)
+	}
+
+	return lobbyUsers
 }

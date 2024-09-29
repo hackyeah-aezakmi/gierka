@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/hackyeah-aezakmi/gierka/transport/socket"
 	"io"
 	"log"
 	"net/http"
@@ -29,6 +30,25 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Store.SetUser(req.ID, req.GameId, req.Data)
+
+	lobbyUsers := h.getLobbyUsers(req.GameId)
+	lobbyUsersJson, err := json.Marshal(lobbyUsers)
+	if err != nil {
+		log.Printf("serveWebsocket: can't marshal json: %s", err)
+	}
+
+	lobbyMsg := socket.Message{
+		Type: "lobbyUpdate",
+		Data: string(lobbyUsersJson),
+	}
+
+	lobbyMsgJson, err := json.Marshal(lobbyMsg)
+	if err != nil {
+		log.Printf("serveWebsocket: can't marshal json: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	h.WsPool.Broadcast <- string(lobbyMsgJson)
+
 	w.WriteHeader(http.StatusCreated)
 }
 
