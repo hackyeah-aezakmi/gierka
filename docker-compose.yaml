@@ -16,6 +16,9 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - "8080:8080"
     depends_on:
